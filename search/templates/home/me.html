@@ -1,0 +1,164 @@
+{% extends "home/base.html" %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static',filename='admin/css/bootstrap.min.css') }}">
+{% endblock %}
+
+{% block content %}
+<h1 class="t_nav"><span>您现在的位置是：首页 > 个人信息 </span><a href="{{ url_for('home.index') }}" class="n1">网站首页</a>
+    <a href="{{ url_for('home.me') }}" class="n2">个人信息</a></h1>
+<div class="blogsbox">
+    <div class="card form" id="form2" style="display:block;">
+        <div class="card-header">
+            <h3>个人信息</h3>
+        </div>
+        <br>
+        <div style="margin-left:20px;" class="row">
+            <div class="col-md-6">
+                <form method="post" enctype="multipart/form-data" id="msgform">
+                    <div class="form-group row">
+                        <label style="width: 100px;" class=" col-form-label">id</label>
+                        <div class="col-9">
+                            <input name="userid" id="userid" class="form-control" type="text"
+                                   value="" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label style="width: 100px;" class=" col-form-label">姓名</label>
+                        <div class="col-9">
+                            <input name="username" class="form-control" type="text" value="" id="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label style="width: 100px;" class=" col-form-label">邮箱</label>
+                        <div class="col-9">
+                            <input name="email" class="form-control" type="text" value="" id="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label style="width: 100px;" class=" col-form-label">头像</label>
+                        <div class="col-9">
+                            <input accept="image/*" class="form-control" type="file" value="" id="facefile"
+                                   name="facefile">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label>个性签名</label>
+                        <textarea class="form-control" name="signature" id="signature" cols="30"
+                                  rows="4"></textarea>
+                    </div>
+
+                </form>
+                <button onclick="javascript:saveme()" type="button" class="btn btn-primary">保存修改
+                </button>
+            </div>
+
+            <div class="col-md-6" style="float:left;">
+                当前头像
+                <div><img onclick="tobig()" title="点击放大"
+                          style="-webkit-user-select: none;cursor: zoom-in;width:60%;height:60%;" id="face1" src=""/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <img id="face2" style="display: none;-webkit-user-select: none;cursor: zoom-out;" onclick="tosmall()"
+             title="点击返回"
+             width="100%" height="100%" src=""/>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    function tobig() {
+        var form = document.getElementById('form2');
+        var bigimg = document.getElementById('face2');
+        form.style.display = 'none';
+        bigimg.style.display = 'block';
+    }
+
+    function tosmall() {
+        var form = document.getElementById('form2');
+        var bigimg = document.getElementById('face2');
+        form.style.display = 'block';
+        bigimg.style.display = 'none';
+    }
+
+    function saveme() {
+        let name = $('#username').val();
+        let email = $('#email').val();
+        if (name == '' || email == '') {
+            alert('名称或邮箱不能为空');
+            return null;
+        } else if (!ismail(email)) {
+            alert('邮箱格式不规范');
+            return null;
+        } else {
+            var changeurl = "{{ url_for('home.changeme') }}";
+            var senddata = new FormData(document.getElementById("msgform"));
+            $.ajax({
+                url: changeurl,
+                data: senddata,
+                type: 'POST',
+                dataType: false,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (message) {
+                    if (message['code'] == true) {
+                        getme();
+                        alert(message['msg']);
+                    } else {
+                        alert(message['msg']);
+                    }
+                },
+                error: function (XMLHttpRequest, errorThrown) {
+                    alert('数据提交失败');
+                }
+            });
+        }
+    }
+
+    function getme() {
+        let geturl = "{{ url_for('home.me') }}";
+        $.ajax({
+            url: geturl,
+            data: 'me',
+            type: 'POST',
+            dataType: "json",
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (message) {
+                if (message['face'] == null) {
+                    document.getElementById('face1').style.display = 'none';
+                } else {
+                    document.getElementById('face1').src = '/static/upload/' + message['face'];
+                    document.getElementById('face2').src = '/static/upload/' + message['face'];
+                }
+                document.getElementById('username').value = message['username'];
+                document.getElementById('userid').value = message['userid'];
+                document.getElementById('email').value = message['email'];
+                document.getElementById('signature').value = message['signature'];
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    function ismail(mail) {
+        var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+        if (reg.test(mail)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    getme();
+</script>
+{% endblock %}

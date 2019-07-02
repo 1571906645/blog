@@ -1,0 +1,130 @@
+{% extends "home/base.html" %}
+
+{% block content %}
+<div class="picsbox">
+    <div class="banner">
+        <div id="banner" class="fader">
+            <li class="slide"><a><img class="imglist"><span class="imginfo">记录</span></a></li>
+            <li class="slide"><a><img class="imglist"><span class="imginfo">分享</span></a></li>
+            <li class="slide"><a><img class="imglist"><span class="imginfo">交流</span></a></li>
+            <div class="fader_controls">
+                <div class="page prev" data-target="prev">&lsaquo;</div>
+                <div class="page next" data-target="next">&rsaquo;</div>
+                <ul class="pager_list">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--banner end-->
+    <div class="toppic">
+
+    </div>
+</div>
+<div class="blogsbox">
+    {% for i in pagedata.items %}
+    <div class="blogs" data-scroll-reveal="enter bottom over 1s">
+        <h3 class="blogtitle"><a href="/onenew/{{ i.id }}" target="_blank">{{ i.title }}</a></h3>
+        {% if i.cover %}
+        <span class="blogpic"><a href="/onenew/{{ i.id }}" title=""><img
+                src="{{ url_for('static',filename='upload/'+i.cover) }}"></a></span>
+        {% else %}
+        {% endif %}
+        <!--        <p class="blogtext"></p>-->
+        <div class="bloginfo">
+            <ul>
+                {% if i.uid %}
+                <li class="author"><a href="/usermsg/{{ i.uid }}">{{ i.user.username }}</a></li>
+                {% else %}
+                <li class="author"><a>管理员</a></li>
+                {% endif %}
+                <li class="lmname"><a href="/newtype/{{ i.type.id }}">{{ i.type.name }}</a></li>
+                <li class="timer">{{ i.createtime }}</li>
+                {% if i.clicknum %}
+                <li class="view"><span>{{ i.clicknum }}</span>次阅读</li>
+                <!--                <li class="like">{{ i.clicknum }}</li>-->
+                {% else %}
+                <li class="view"><span>0</span>次阅读</li>
+                <!--                <li class="like">0</li>-->
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="pagelist">
+        {% for i in pagedata.iter_pages() %}
+        {% if i==page %}
+        <a>{{ i }}</a>
+        {% elif i==None %}
+        {% else %}
+        <a href="{{ url_for('home.index') }}?page={{i}}&kw={{kw}}">{{i}}</a>
+        {% endif %}
+        {% endfor %}
+        共{{ pagedata.total }}条数据
+    </div>
+
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    function cgimg() {
+        let cgurl = "/cgimg";
+        $.ajax({
+            url: cgurl,
+            async: true,
+            data: '3',
+            type: 'POST',
+            dataType: "json",
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (message) {
+                let imgs = document.getElementsByClassName('imglist');
+                for (let i = 0; i < imgs.length; i++) {
+                    imgs[i].src = '/static/cgimg/' + message[i];
+                }
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    function cgnew() {
+        let cgurl = '/cgnew';
+        $.ajax({
+            url: cgurl,
+            async: true,
+            data: '2',
+            type: 'POST',
+            dataType: "json",
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (message) {
+                let newtext = '';
+                for (let i = 0; i < message.length; i++) {
+                    newtext = newtext + '<li><a href="/onenew/' + message[i]['id'] + '" target="_blank"><i><img src="/static/upload/' + message[i]['cover'] + '"></i><h2>' + message[i]['title'] + '</h2><span>' + message[i]['name'] + '</span></a></li>'
+                }
+                $('.toppic').html(newtext)
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    cgnew();
+    cgimg();
+    let imgs = document.getElementsByClassName('imglist');
+    for (let i = 0; i < imgs.length; i++) {
+        imgs[i].onclick = function () {
+            cgimg();
+            cgnew();
+        };
+    }
+
+
+</script>
+{% endblock %}

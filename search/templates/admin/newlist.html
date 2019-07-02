@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+
+{% block css %}
+<style type="text/css">
+    .title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <table class="table table-hover">
+        <thead>
+        <tr class="bg-info text-white">
+            <th>id</th>
+            <th>文章标题</th>
+            <th>文章类型</th>
+            <th>发布人</th>
+            <th>发布时间</th>
+            <td>
+                <select onclick="getmsg($('#typeselect').val(),$('#titlename').val(),1)" class="form-control"
+                        id="typeselect">
+                    <option value="">全部类型</option>
+                    {% for i in typedata %}
+                    <option value="{{ i.id }}">{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            </td>
+            <td><input id="titlename" class="form-control" type="text" placeholder="输入标题名">
+            </td>
+            <td>
+                <button onclick="javascript:getmsg($('#typeselect').val(),$('#titlename').val(),1)" type="button"
+                        class="btn btn-primary">查找
+                </button>
+            </td>
+        </tr>
+        </thead>
+        <tbody id="allmsg">
+        </tbody>
+    </table>
+    <div id="pages">
+    </div>
+    <div style="margin-left:50px;">共有<span id="pagecount"></span>页</div>
+    <div style="margin-left:50px;">共有<span id="usercount"></span>条数据</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+    function delnew(nid) {
+        var delurl = "{{ url_for('admin.delnew') }}";
+        $.ajax({
+            type: 'POST',
+            url: delurl,
+            async: false,
+            contentType: false,
+            data: nid,
+            dataType: 'json',
+            success: function (message) {
+                if (message['code'] == true) {
+                    $('#nowpage').click();
+                    alert('删除成功')
+                } else {
+                    alert(message['msg']);
+                }
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据传输失败');
+            }
+        });
+    }
+
+    function getmsg(typeid = none, title = none, page = 1) {
+        var msgurl = "{{ url_for('admin.newlist') }}";
+        var ajdata = JSON.stringify({
+            'typeid': typeid,
+            'title': title,
+            'page': page
+        });
+        $.ajax({
+            type: 'POST',
+            url: msgurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: ajdata,
+            dataType: 'json',
+            success: function (message) {
+                $('#pagecount').text(message['allpage']);
+                $('#usercount').text(message['count']);
+                var msg = '';
+                var pageshow = '';
+                if (!title) {
+                    title = 'null';
+                }
+                if (!typeid) {
+                    typeid = 'null';
+                }
+                for (var i = 0; i < message['pagelist'].length; i++) {
+                    if (page == message['pagelist'][i]) {
+                        pageshow = pageshow + '<button id="nowpage" onclick="javascript:getmsg(' + typeid + ',' + title + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-primary">' + message['pagelist'][i] + '</button>';
+                    } else if (message['pagelist'][i] == null) {
+                        pageshow = pageshow + '<button type="button" class="btn btn-secondary">...</button>';
+                    } else {
+                        pageshow = pageshow + '<button onclick="javascript:getmsg(' + typeid + ',' + title + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-secondary">' + message['pagelist'][i] + '</button>';
+                    }
+                }
+                $('#pages').html(pageshow);
+                var userdata = message['basedata'];
+                for (var i = 0; i < userdata.length; i++) {
+                    msg = msg + '<tr><th><a target="_blank" href="/onenew/' + userdata[i]['id'] + '">' + userdata[i]['id'] + '</a></th><td class="title">' + userdata[i]['title'] + '</td><td>' + userdata[i]['type'] + '</td>';
+                    if (userdata[i]['user'] == null) {
+                        msg = msg + '<td>管理员</td>';
+                    } else {
+                        msg = msg + '<td>' + userdata[i]['user'] + '</td>';
+                    }
+                    msg = msg + '<td>' + userdata[i]['createtime'] + '</td><td><button onclick="javascript:delnew(\'' + userdata[i]['id'] + '\')" type="button" class="btn btn-primary">删除</button>' +
+                        '</td></tr>';
+                }
+                $('#allmsg').html(msg)
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                if (page > 1) {
+                    getmsg(typeid, title, page - 1)
+                } else {
+                    alert('数据提交失败');
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#li-5-2").addClass("active");
+        $("#li-5 a:first").attr("aria-expanded", "true");
+        $("#news").addClass("show");
+    });
+
+    getmsg('', '', 1);
+</script>
+{% endblock %}

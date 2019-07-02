@@ -1,0 +1,84 @@
+{% extends "home/base.html" %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static',filename='admin/css/bootstrap.min.css') }}">
+{% endblock %}
+{% block content %}
+<h1 class="t_nav"><span>您现在的位置是：首页 > 个人信息 </span><a href="{{ url_for('home.index') }}" class="n1">网站首页</a>
+    <a href="{{ url_for('home.changekw') }}" class="n2">个人信息</a></h1>
+<div class="blogsbox">
+    <div class="card form" id="form2">
+        <div class="card-header">
+            <h3>修改密码</h3>
+        </div>
+        <br>
+        <div style="margin-left:20px;" class="row">
+            <div class="col-md-6">
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">确认原有密码</label>
+                    <div class="col-9">
+                        <input id="kw" class="form-control" type="password">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">修改密码</label>
+                    <div class="col-9">
+                        <input id="kw1" class="form-control" type="password">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">再次确认</label>
+                    <div class="col-9">
+                        <input class="form-control" type="password" id="kw2">
+                    </div>
+                </div>
+                <button onclick="javascript:changekw()" type="button"
+                        class="btn btn-primary">保存修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    function changekw() {
+        var kw1 = document.getElementById('kw1').value;
+        var kw2 = document.getElementById('kw2').value;
+        if (kw1 != kw2) {
+            alert('两次输入的密码不相等，请重新输入');
+            return false
+        }
+        var okw = document.getElementById('kw').value;
+        if (kw1 == '' || kw2 == '' || okw == '') {
+            alert('输入不能有空的哦');
+            return false
+        }
+        var sentdata = JSON.stringify({
+            'old': okw,
+            'new': kw1
+        });
+        var kwurl = "{{ url_for('home.changekw') }}";
+        $.ajax({
+            type: 'POST',
+            url: kwurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: sentdata,
+            dataType: 'json',
+            success: function (message) {
+                if (message['code'] == true) {
+                    alert(message['msg']);
+                    let login = "{{ url_for('home.login') }}";
+                    top.location.href = login;
+                } else {
+                    alert(message['msg'])
+                }
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+</script>
+{% endblock %}

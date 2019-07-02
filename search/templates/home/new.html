@@ -1,0 +1,321 @@
+{% extends "home/base.html" %}
+
+{% block css %}
+<style>
+    img {
+        width: 100%;
+    }
+
+    .son {
+        margin-left: 60px;
+        background: #f0f0f0;
+        margin-top: 10px;
+    }
+
+    .popin {
+        color: red;
+        display: none;
+    }
+
+    .popout {
+        color: red;
+        display: block;
+    }
+
+    .sonmsg {
+        display: none;
+    }
+
+    .reply {
+        display: none;
+    }
+
+    .allview {
+        margin-left: 14px;
+    }
+
+    .allview li {
+        margin-top: 10px;
+    }
+
+    .allview li p a {
+        color: blue;
+    }
+
+    .allview span {
+        color: green;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="t_nav"><span>您现在的位置是：首页 > 内容页 > {{ data['new'].type.name }}</span>
+    <a href="{{ url_for('home.index') }}" class="n1">网站首页</a>
+    <a class="n2">内容页</a></h1>
+<div class="infosbox">
+    <div class="newsview">
+        <h3 class="news_title">{{ data['new'].title }}</h3>
+        <div class="bloginfo">
+            <ul>
+                <li class="author">
+                    {% if data['new'].user.username %}
+                    <a href="/usermsg/{{ data['new'].user.id }}">{{ data['new'].user.username }}</a>
+                    {% else %}
+                    <a>管理员</a>
+                    {% endif %}
+                </li>
+                <li class="lmname"><a href="/newtype/{{ data['new'].tid }}">{{ data['new'].type.name }}</a></li>
+                <li class="timer">{{ data['new'].createtime }}</li>
+                <li class="view">{{ data['new'].clicknum }}阅读量</li>
+                <!--                <li class="like">{{ data['new'].clicknum }}</li>-->
+            </ul>
+        </div>
+        <!--      <div class="tags"><a href="#" target="_blank">个人博客</a> &nbsp; <a href="#" target="_blank">小世界</a></div>-->
+        <div class="news_about"><strong>发布人：</strong><a href="/usermsg/{{ data['new'].user.id }}">{{
+            data['new'].user.username }}</a></div>
+        <div class="news_con">{{ data['new'].text|safe }}</div>
+    </div>
+
+    <div class="nextinfo">
+        <p>上一篇：<a href="/onenew/{{ data['previous'].id }}">{{ data['previous'].title }}</a></p>
+        <p>下一篇：<a href="/onenew/{{ data['next'].id }}">{{ data['next'].title }}</a></p>
+    </div>
+    <div class="otherlink">
+        <h2>相关文章</h2>
+        <ul>
+            {% for i in data['others'] %}
+            <li><a href="/onenew/{{ i.id }}" title="{{ i.title }}">{{ i.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="news_pl">
+        <h2>文章评论&nbsp;&nbsp;&nbsp;&nbsp;
+            {% if data['new'].comnum %}
+            (共{{ data['new'].comnum }}条)
+            {% else %}
+            (共0条)
+            {% endif %}
+        </h2>
+        <ul class="allview">
+
+        </ul>
+        <div id="isnext" style="color:#7a0110;">下拉加载更多......</div>
+        {% if session['uid'] %}
+        <textarea style="width:95%;height:150px;margin-left:14px;" id="fatherview"></textarea>
+        <p>
+            <button onclick="sendfmsg();" style="margin-left:20px;">发表评论</button>
+        </p>
+        {% else %}
+        要先登录才能发表评论哦!!!&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript:void(0);" onclick="showlogin();">点击登录</a>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    var logincode = '{{session["uid"]}}';
+    var nowpage = 1;
+    var hasnext = true;
+    comview(nowpage);
+
+    $(window).scroll(function () {
+        let scrolltop = $(this).scrollTop();
+        let scrollheight = $(document).height();
+        let clientheight = $(this).height();
+        if (scrolltop + clientheight >= scrollheight && hasnext) {
+            nowpage++;
+            // alert(nowpage);
+            comview(nowpage);
+        } else if (!hasnext) {
+            $('#isnext').html('全部加载完毕');
+        }
+    });
+
+    function comview(page = null) {
+        let sendurl = '/comview';
+        if (page == null) {
+            page = 1;
+        }
+        let nid = "{{ data['new'].id }}";
+        let senddata = JSON.stringify({
+            'page': page,
+            'nid': nid
+        });
+        $.ajax({
+            url: sendurl,
+            data: senddata,
+            // async: false,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=utf-8',
+            success: function (message) {
+                if (message['hasnext']) {
+                    hasnext = true;
+                    $('#isnext').html('下拉加载更多......');
+                } else {
+                    hasnext = false;
+                    $('#isnext').html('全部加载完毕');
+                }
+                let alltext = '';
+                let msg = message['msg'];
+                for (let i = 0; i < msg.length; i++) {
+                    alltext = alltext + '<li><a href="/usermsg/' + msg[i]['uid'] + '">' + (i + 1) + '楼用户：' + msg[i]['fname'] + '</a>&nbsp;&nbsp;&nbsp;&nbsp;发表时间：' + msg[i]['ftime'] +
+                        '<pre>' + msg[i]['ftext'] + '</pre><a class="popout" href="javascript:void(0);">回复</a>' +
+                        '<a class="popin" href="javascript:void(0);">收起</a><span>共' + msg[i]['fnum'] + '条</span>' +
+                        '<p><input class="sonmsg" type="text" placeholder="回复 @' + msg[i]['fname'] + '">' +
+                        '<button class="reply" data-fid="' + msg[i]['fid'] + '">发布</button></p>';
+                    if (Boolean(msg[i]['sondata'])) {
+                        for (let j = 0; j < msg[i]['sondata'].length; j++) {
+                            alltext = alltext + '<div class="son"><a href="/usermsg/' + msg[i]['sondata'][j]['sid'] + '">' + (j + 1) + '楼用户：' + msg[i]['sondata'][j]['sname'] +
+                                '</a>&nbsp;&nbsp;&nbsp;&nbsp;发表时间：' + msg[i]['sondata'][j]['stime'] + '<pre>' + msg[i]['sondata'][j]['stext'] + '</pre><a class="popout" href="javascript:void(0);">回复</a>' +
+                                '<a class="popin" href="javascript:void(0);">收起</a><p><input class="sonmsg" type="text" placeholder="回复 @' + msg[i]['sondata'][j]['sname'] + '">' +
+                                '<button class="reply" data-fid="' + msg[i]['fid'] + '" data-sname="' + msg[i]['sondata'][j]['sname'] + '">发布</button></p></div>';
+                        }
+                    }
+                    alltext = alltext + '</li>';
+                }
+                // alltext = $('.allview').html() + alltext;
+                // console.log($('.allview').html());
+                $('.allview').html(alltext);
+                allli();
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    function sendfmsg() {
+        let sendurl = '/getcom';
+        let fview = document.getElementById('fatherview');
+        let msg = fview.value;
+        let nid = "{{ data['new'].id }}";
+        if (msg == '') {
+            alert('消息不能为空');
+            return null;
+        }
+        let senddata = JSON.stringify({
+            'type': 'f',
+            'com': msg,
+            'nid': nid
+        });
+        $.ajax({
+            url: sendurl,
+            data: senddata,
+            type: 'POST',
+            dataType: false,
+            contentType: 'application/json;charset=utf-8',
+            success: function (message) {
+                comview(nowpage);
+                fview.value = '';
+                // alert(message);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    function allli() {
+        let lilist = document.getElementsByClassName('allview')[0].getElementsByTagName('li');
+        // alert(lilist.length);
+        for (let i = 0; i < lilist.length; i++) {
+            // alert(i);
+            popreply(lilist[i]);
+            let sonlist = lilist[i].getElementsByClassName('son');
+            if (Boolean(sonlist)) {
+                for (let j = 0; j < sonlist.length; j++) {
+                    popreply(sonlist[j])
+                }
+            }
+
+        }
+    }
+
+    //给按钮和a标签绑定onclick事件
+    function popreply(obj) {
+        let popout = obj.getElementsByClassName('popout')[0];
+        let popin = obj.getElementsByClassName('popin')[0];
+        let sonmsg = obj.getElementsByClassName('sonmsg')[0];
+        let reply = obj.getElementsByClassName('reply')[0];
+        // alert(replay);
+        if (logincode) {
+            popout.onclick = function () {
+                popout.style.display = 'none';
+                popin.style.display = 'block';
+                sonmsg.style.display = 'block';
+                reply.style.display = 'block';
+                // alert(reply.getAttribute('data-uid'));
+            };
+            popin.onclick = function () {
+                popout.style.display = 'block';
+                popin.style.display = 'none';
+                sonmsg.style.display = 'none';
+                reply.style.display = 'none';
+            };
+            reply.onclick = function () {
+                let ftext = sonmsg.value;
+                if (ftext == '') {
+                    alert('不能为空');
+                } else {
+                    let sendurl = '/getcom';
+                    let fid = reply.getAttribute('data-fid');
+                    let sname = reply.getAttribute('data-sname');
+                    if (sname) {
+                        ftext = '@' + sname + ' ' + ftext
+                    }
+                    let nid = "{{ data['new'].id }}";
+                    let senddata = JSON.stringify({
+                        'type': 's',
+                        'com': ftext,
+                        'fid': fid,
+                        'nid': nid
+                    });
+                    $.ajax({
+                        url: sendurl,
+                        data: senddata,
+                        type: 'POST',
+                        dataType: false,
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (message) {
+                            comview(nowpage);
+                            // alert(message);
+                        },
+                        error: function (XMLHttpRequest, errorThrown) {
+                            alert('数据提交失败');
+                        }
+                    });
+                }
+            };
+        } else {
+            popout.onclick = function () {
+                showlogin();
+            };
+        }
+    }
+
+    function deletenew() {
+        var id = "{{ data['new'].id }}";
+        var deurl = "{{ url_for('home.deletenew') }}";
+        var ajaxdata = JSON.stringify({
+            'id': id,
+        });
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', deurl, true);
+        xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+        xhr.send(ajaxdata);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                alert(xhr.responseText);
+                //var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+                var index = "{{ url_for('home.index') }}";
+                top.location.href = index;
+            }
+        };
+    }
+
+
+</script>
+{% endblock %}

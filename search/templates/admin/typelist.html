@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="row">
+    <table class="table table-hover">
+        <thead>
+        <tr class="bg-info text-white">
+            <th>id</th>
+            <th>类型名称</th>
+            <th>添加时间</th>
+            <td><input name="typename" id="typename" class="form-control" type="text" placeholder="输入类型名称">
+            </td>
+            <td>
+                <button onclick="javascript:getmsg($('#typename').val(),1)" type="button" class="btn btn-primary">查找
+                </button>
+            </td>
+
+        </tr>
+        </thead>
+        <tbody id="allmsg">
+        </tbody>
+    </table>
+    <div id="pages">
+    </div>
+    <div style="margin-left:50px;">共有<span id="pagecount"></span>页</div>
+    <div style="margin-left:50px;">共有<span id="usercount"></span>条数据</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+    function deltype(typeid) {
+        if (confirm('确定删除该类型吗？')) {
+            var delurl = "{{url_for('admin.deltype')}}";
+            $.ajax({
+                type: 'POST',
+                url: delurl,
+                async: true,
+                contentType: false,
+                data: typeid,
+                dataType: 'json',
+                success: function (mes) {
+                    if (mes.code == true) {
+                        $('#nowpage').click();
+                    } else {
+                        alert(mes.msg);
+                    }
+                },
+                error: function (XMLHttpRequest, errorThrown) {
+                    alert('数据提交失败');
+                }
+            });
+        } else {
+            return none;
+        }
+    }
+
+    function getmsg(tname = none, page = 1) {
+        var msgurl = "{{ url_for('admin.typelist') }}";
+        var ajdata = JSON.stringify({
+            'name': tname,
+            'page': page
+        });
+        $.ajax({
+            type: 'POST',
+            url: msgurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: ajdata,
+            dataType: 'json',
+            success: function (message) {
+                $('#pagecount').text(message['allpage']);
+                $('#usercount').text(message['count']);
+                var msg = '';
+                var pageshow = '';
+                if (!tname) {
+                    tname = 'null';
+                }
+                for (var i = 0; i < message['pagelist'].length; i++) {
+                    if (page == message['pagelist'][i]) {
+                        pageshow = pageshow + '<button id="nowpage" onclick="javascript:getmsg(' + tname + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-primary">' + message['pagelist'][i] + '</button>';
+                    }else if(message['pagelist'][i]==null){
+                        pageshow = pageshow + '<button type="button" class="btn btn-secondary">...</button>';
+                    } else {
+                        pageshow = pageshow + '<button onclick="javascript:getmsg(' + tname + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-secondary">' + message['pagelist'][i] + '</button>';
+                    }
+                }
+                $('#pages').html(pageshow);
+                var typedata = message['basedata'];
+                for (var i = 0; i < typedata.length; i++) {
+                    msg = msg + '<tr><th>' + typedata[i]['id'] + '</th><td>' + typedata[i]['name'] + '</td>';
+                    msg = msg + '<td>' + typedata[i]['addtime'] + '</td><td><button onclick="javascript:deltype(\'' + typedata[i]['id'] + '\')" type="button" class="btn btn-primary">删除</button>' +
+                        '<button onclick="javascript:edittype(\'' + typedata[i]['id'] + '\')" type="button" class="btn btn-primary">修改 </button></td></tr>';
+                }
+                $('#allmsg').html(msg)
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                if (page > 1) {
+                    getmsg(tname, page - 1)
+                } else {
+                    alert('数据提交失败');
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#li-4-2").addClass("active");
+        $("#li-4 a:first").attr("aria-expanded", "true");
+        $("#types").addClass("show");
+    });
+
+    getmsg('', 1);
+</script>
+{% endblock %}

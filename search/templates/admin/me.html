@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="card form" id="form2" style="display:block;">
+    <div class="card-header">
+        <h3>个人信息</h3>
+    </div>
+    <br>
+    <div style="margin-left:20px;" class="row">
+        <div class="col-md-6">
+            <form method="post" enctype="multipart/form-data" id="msgform">
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">id</label>
+                    <div class="col-9">
+                        <input name="userid" id="userid" class="form-control" type="text"
+                               value="" readonly="readonly">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">名称</label>
+                    <div class="col-9">
+                        <input name="username" class="form-control" type="text" value="" id="username">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">头像</label>
+                    <div class="col-9">
+                        <input accept="image/*" class="form-control" type="file" value="" id="facefile" name="facefile">
+                    </div>
+                </div>
+            </form>
+            <button onclick="javascript:me()" style="margin-bottom:20px;margin-left:30px;" type="button"
+                    class="btn btn-primary">保存修改
+            </button>
+        </div>
+
+        <div class="col-md-6">
+            当前头像
+            <div><img onclick="tobig()" title="点击放大"
+                      style="-webkit-user-select: none;cursor: zoom-in;width:40%;height:40%;" id="face1" src=""/></div>
+        </div>
+    </div>
+</div>
+<div>
+    <img id="face2" style="display: none;-webkit-user-select: none;cursor: zoom-out;" onclick="tosmall()" title="点击返回"
+         width="100%" height="100%" src=""/>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+    function tobig() {
+        var form = document.getElementById('form2');
+        var bigimg = document.getElementById('face2');
+        form.style.display = 'none';
+        bigimg.style.display = 'block';
+    }
+
+    function tosmall() {
+        var form = document.getElementById('form2');
+        var bigimg = document.getElementById('face2');
+        form.style.display = 'block';
+        bigimg.style.display = 'none';
+    }
+
+    function me() {
+        var name = $('#username').val();
+        if (name == '') {
+            alert('名称不能为空');
+        } else {
+            var changeurl = "{{ url_for('admin.changeme') }}";
+            var senddata = new FormData(document.getElementById("msgform"));
+            $.ajax({
+                url: changeurl,
+                data: senddata,
+                type: 'POST',
+                dataType: "json",
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (message) {
+                    if (message['code'] == true) {
+                        getme();
+                        var sename = "{{ session.adminname }}";
+                        $('#sename1').html(sename);
+                        $('#sename2').html(sename);
+                        alert(message['msg']);
+                    } else {
+                        alert(message['msg']);
+                    }
+                },
+                error: function (XMLHttpRequest, errorThrown) {
+                    alert('数据提交失败');
+                }
+            });
+        }
+    }
+
+    function getme() {
+        var geturl = "{{ url_for('admin.me') }}";
+        $.ajax({
+            url: geturl,
+            data: 'me',
+            type: 'POST',
+            dataType: "json",
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (message) {
+                if (message['face'] == null) {
+                    document.getElementById('face1').style.display = 'none';
+                } else {
+                    document.getElementById('face1').src = '/static/upload/' + message['face'];
+                    document.getElementById('face2').src = '/static/upload/' + message['face'];
+                }
+                document.getElementById('username').value = message.username;
+                document.getElementById('userid').value = message['id'];
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#li-3-1").addClass("active");
+        $("#li-3 a:first").attr("aria-expanded", "true");
+        $("#usermsg").addClass("show");
+    });
+
+    getme();
+</script>
+{% endblock %}

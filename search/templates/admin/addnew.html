@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+
+{% block css %}
+<script type="text/javascript" src="{{ url_for('static',filename='ueditor/ueditor.config.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='ueditor/ueditor.all.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='ueditor/lang/zh-cn/zh-cn.js') }}"></script>
+
+<style type="text/css">
+    div {
+        border: 1px;
+    }
+
+    #editor {
+        width: 100%;
+        height: 400px;
+        text-align: center;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card form" id="form1">
+    <form method="post" enctype="multipart/form-data" id="newform" onsubmit="return false">
+        <div class="card-header">
+            <h3><i class="fa fa-user-circle"></i>文章编辑</h3>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>文章标题</label>
+                    <input name="title" type="text" class="form-control" id="title" placeholder="输入文章标题">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>选择一个文章类别</label>
+                    <select name="type" class="form-control" id="typeselect">
+                        {% for i in typedata %}
+                        <option value="{{ i.id }}">{{ i.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label>封面</label>
+                    <input accept="image/*" class="form-control" type="file" value="" id="cover" name="cover">
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-12">
+            <button onclick="javascript:addnew()" class="btn btn-general btn-blue mr-2">
+                保存编辑
+            </button>
+            <label>文本编辑器</label>
+            <script name="editor" id="editor" type="text/plain"></script>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+    var ue = UE.getEditor('editor', {
+        serverUrl: "/upload"
+    });
+
+    function addnew() {
+        var type = document.getElementById('typeselect').value;
+        var title = document.getElementById('title').value;
+        if (title == '') {
+            alert('标题不能为空');
+            return none;
+        }
+        var text = UE.getEditor('editor').getContent();
+        var addurl = "{{ url_for('admin.addnew') }}";
+        // var ajaxdata = JSON.stringify({
+        //     'type': type,
+        //     'title': title,
+        //     'text': text,
+        // });
+        var formdata = new FormData(document.getElementById("newform"));
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', addurl, true);
+        // xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+        xhr.send(formdata);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                alert(xhr.responseText);
+                // var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+            }
+        };
+    }
+
+    $(document).ready(function () {
+        $("#li-5-1").addClass("active");
+        $("#li-5 a:first").attr("aria-expanded", "true");
+        $("#news").addClass("show");
+    });
+</script>
+{% endblock %}

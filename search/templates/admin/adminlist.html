@@ -1,0 +1,96 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="row">
+    <table class="table table-hover">
+        <thead>
+        <tr class="bg-info text-white">
+            <th>id</th>
+            <th>用户名</th>
+            <th>头像</th>
+            <th>添加时间</th>
+            <td><input name="username" id="username" class="form-control" type="text" placeholder="输入用户名">
+            </td>
+            <td>
+                <button onclick="javascript:getmsg($('#username').val(),1)" type="button" class="btn btn-primary">查找
+                </button>
+            </td>
+
+        </tr>
+        </thead>
+        <tbody id="allmsg">
+        </tbody>
+    </table>
+    <div id="pages">
+    </div>
+    <div style="margin-left:50px;">共有<span id="pagecount"></span>页</div>
+    <div style="margin-left:50px;">共有<span id="usercount"></span>条数据</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+    function getmsg(uname = none, page = 1) {
+        var msgurl = "{{ url_for('admin.adminlist') }}";
+        var ajdata = JSON.stringify({
+            'aname': uname,
+            'page': page
+        });
+        $.ajax({
+            type: 'POST',
+            url: msgurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: ajdata,
+            dataType: 'json',
+            success: function (message) {
+                $('#pagecount').text(message['allpage']);
+                $('#usercount').text(message['count']);
+                var msg = '';
+                var pageshow = '';
+                if (!uname) {
+                    uname = 'null';
+                }
+                for (var i = 0; i < message['pagelist'].length; i++) {
+                    if (page == message['pagelist'][i]) {
+                        pageshow = pageshow + '<button id="nowpage" onclick="javascript:getmsg(' + uname + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-primary">' + message['pagelist'][i] + '</button>';
+                    } else if (message['pagelist'][i] == null) {
+                        pageshow = pageshow + '<button type="button" class="btn btn-secondary">...</button>';
+                    } else {
+                        pageshow = pageshow + '<button onclick="javascript:getmsg(' + uname + ',' + message['pagelist'][i] + ')" type="button" class="btn btn-secondary">' + message['pagelist'][i] + '</button>';
+                    }
+                }
+                $('#pages').html(pageshow);
+                var userdata = message['basedata'];
+                for (var i = 0; i < userdata.length; i++) {
+                    msg = msg + '<tr><th>' + userdata[i]['id'] + '</th><td>' + userdata[i]['username'] + '</td>';
+                    if (userdata[i]['face'] == null) {
+                        msg = msg + '<td><a>暂无头像</a></td>';
+                    } else {
+                        msg = msg + '<td><a target="_blank" href="/static/upload/' + userdata[i]['face'] +
+                            '">点击查看</a></td>';
+                    }
+                    msg = msg + '<td>' + userdata[i]['addtime'] + '</td></tr>';
+                }
+                $('#allmsg').html(msg)
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                if (page > 1) {
+                    getmsg(uname, page - 1)
+                } else {
+                    alert('数据提交失败');
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#li-6-2").addClass("active");
+        $("#li-6 a:first").attr("aria-expanded", "true");
+        $("#admins").addClass("show");
+    });
+
+    getmsg('', 1);
+</script>
+{% endblock %}

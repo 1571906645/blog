@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="{{ url_for('static',filename='js2/jquery-3.3.1.min.js') }}"></script>
+    <title>登录</title>
+    <style>
+        #all article, figure {
+            display: block;
+        }
+
+        #all *, html, body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #all body, p, ul, li, span, i, strong, input, textarea {
+            font-size: 14px;
+            font-family: "微软雅黑";
+            font-style: normal;
+            padding: 0;
+            margin: 0;
+        }
+
+        #all a {
+            text-decoration: none;
+            color: #000;
+        }
+
+        #all ul, li {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #all article {
+            float: left;
+            width: 400px;
+            height: 170px;
+            margin-top: 20px;
+        }
+
+        #yhm {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 10px;
+            margin-left: 19px;
+            margin-top: 28px;
+            color: dimgrey;
+        }
+
+        #name {
+            width: 305px;
+            height: 35px;
+            float: left;
+            margin-top: 20px;
+            margin-right: 10px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #mima {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 9.5px;
+            margin-left: 19px;
+            margin-top: 38px;
+            color: dimgrey;
+        }
+
+        #password {
+            width: 305px;
+            height: 35px;
+            float: left;
+            margin-top: 29px;
+            margin-right: 10px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #zc {
+            width: 315px;
+            height: 40px;
+            background: #4490f7;
+            color: white;
+            font-family: "微软雅黑";
+            font-size: 16px;
+            border: 0px;
+            margin-left: 60px;
+            margin-top: 0px;
+        }
+
+        #all {
+            position: absolute;
+            width: 400px;
+            height: 300px;
+            margin-left: -200px;
+            margin-top: -150px;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+
+</head>
+<body>
+<div id="all">
+    <article>
+        <p id="yhm">用户</p>
+        <input type="text" placeholder="请输入用户名或邮箱" id="name"/>
+        <p id="mima">密码 </p>
+        <input type="password" placeholder="请输入登录密码" id="password"/>
+    </article>
+    <input type="button" onclick="javascript:login()" value="登录" id="zc"/>
+    <a href="{{ url_for('home.forget') }}" style="margin-left:60px;">忘记密码</a>
+    <a href="{{ url_for('home.register') }}" style="margin-left:190px;">点击注册</a>
+</div>
+</body>
+<script type="text/javascript">
+    function login() {
+        var name = document.getElementById('name').value;
+        var password = document.getElementById('password').value;
+        if (name == '' || password == '') {
+            alert('账号或密码不能为空');
+            return none;
+        }
+        var login = "{{ url_for('home.login') }}";
+        var ajaxdata = JSON.stringify({
+            'name': name,
+            'password': password,
+        });
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', login, true);
+        xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+        xhr.send(ajaxdata);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+                if (pagedata.code == true) {
+                    alert('欢迎' + pagedata.name);
+                    var index = "{{ url_for('home.index') }}";
+                    top.location.href = index;
+                } else {
+                    alert('账号或密码输入错误');
+                }
+            }
+        };
+
+    }
+</script>
+</html>

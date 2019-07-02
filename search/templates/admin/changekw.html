@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="card form" id="form2">
+    <div class="card-header">
+        <h3>修改密码</h3>
+    </div>
+    <br>
+    <div style="margin-left:20px;" class="row">
+        <div class="col-md-6">
+            <div class="form-group row">
+                <label style="width: 100px;" class=" col-form-label">确认原有密码</label>
+                <div class="col-9">
+                    <input id="kw" class="form-control" type="password">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label style="width: 100px;" class=" col-form-label">修改密码</label>
+                <div class="col-9">
+                    <input id="kw1" class="form-control" type="password">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label style="width: 100px;" class=" col-form-label">再次确认</label>
+                <div class="col-9">
+                    <input class="form-control" type="password" id="kw2">
+                </div>
+            </div>
+            <button onclick="javascript:changekw()" style="margin-bottom:20px;margin-left:30px;" type="button"
+                    class="btn btn-primary">保存修改
+            </button>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    function changekw() {
+        var kw1 = document.getElementById('kw1').value;
+        var kw2 = document.getElementById('kw2').value;
+        if (kw1 != kw2) {
+            alert('两次输入的密码不相等，请重新输入');
+            return false
+        }
+        var okw = document.getElementById('kw').value;
+        if (kw1 == '' || kw2 == '' || okw == '') {
+            alert('输入不能有空的哦');
+            return false
+        }
+        var sentdata = JSON.stringify({
+            'old': okw,
+            'new': kw1
+        });
+        var kwurl = "{{ url_for('admin.changekw') }}";
+        $.ajax({
+            type: 'POST',
+            url: kwurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: sentdata,
+            dataType: 'json',
+            success: function (message) {
+                if (message['code'] == true) {
+                    alert(message['msg']);
+                    var login = "{{ url_for('admin.login') }}";
+                    top.location.href = login;
+                    return none
+                }
+                alert(message['msg']);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#li-3-2").addClass("active");
+        $("#li-3 a:first").attr("aria-expanded", "true");
+        $("#usermsg").addClass("show");
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "home/base.html" %}
+
+{% block content %}
+<h1 class="t_nav"><span>您现在的位置是：首页 > 文章类别>{{ typename }} </span>
+    <a href="{{ url_for('home.index') }}" class="n1">网站首页</a>
+    <a href="/newtype" class="n2">文章类别</a></h1>
+<div class="blogsbox">
+    <div class="cloud">
+        <h2 class="hometitle">文章类别</h2>
+        <ul class="typelist" id="typelist">
+        </ul>
+    </div>
+    <h2>当前类别：{{ typename }}</h2>
+    {% for i in pagedata.items %}
+    <div class="blogs" data-scroll-reveal="enter bottom over 1s">
+        <h3 class="blogtitle"><a href="/onenew/{{ i.id }}" target="_blank">{{ i.title }}</a></h3>
+        {% if i.cover %}
+        <span class="blogpic"><a href="/onenew/{{ i.id }}" title=""><img
+                src="{{ url_for('static',filename='upload/'+i.cover) }}"></a></span>
+        {% else %}
+        {% endif %}
+        <!--        <p class="blogtext"></p>-->
+        <div class="bloginfo">
+            <ul>
+                {% if i.uid %}
+                <li class="author"><a href="/usermsg/{{ i.uid }}">{{ i.user.username }}</a></li>
+                {% else %}
+                <li class="author"><a>管理员</a></li>
+                {% endif %}
+                <li class="lmname"><a href="/newtype/{{ i.type.id }}">{{ i.type.name }}</a></li>
+                <li class="timer">{{ i.createtime }}</li>
+                {% if i.clicknum %}
+                <li class="view"><span>{{ i.clicknum }}</span>次阅读</li>
+                <!--                <li class="like">{{ i.clicknum }}</li>-->
+                {% else %}
+                <li class="view"><span>0</span>次阅读</li>
+                <!--                <li class="like">0</li>-->
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="pagelist">
+        {% for i in pagedata.iter_pages() %}
+        {% if i==page %}
+        <a>{{ i }}</a>
+        {% elif i==None %}
+        {% else %}
+        <a href="?page={{i}}">{{i}}</a>
+        {% endif %}
+        {% endfor %}
+        共{{ pagedata.total }}条数据
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+</script>
+{% endblock %}

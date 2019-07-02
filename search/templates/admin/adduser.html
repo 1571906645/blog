@@ -1,0 +1,98 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="card form" id="form2">
+    <div class="card-header">
+        <h3>用户信息</h3>
+    </div>
+    <br>
+    <div style="margin-left:20px;" class="row">
+        <div class="col-md-6">
+            <form method="post" enctype="multipart/form-data" id="msgform">
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">用户名</label>
+                    <div class="col-9">
+                        <input name="username" id="username" class="form-control" type="text"
+                               value="" placeholder="输入用户名">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">用户密码</label>
+                    <div class="col-9">
+                        <input name="password" class="form-control" type="password" value="" id="password">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">邮箱</label>
+                    <div class="col-9">
+                        <input class="form-control" type="email" value="" id="email" name="email">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label style="width: 100px;" class=" col-form-label">头像</label>
+                    <div class="col-9">
+                        <input accept="image/*" class="form-control" type="file" value="" id="facefile" name="facefile">
+                        <input type="hidden" value="add" readonly="readonly" name="retype" id="retype">
+                    </div>
+                </div>
+            </form>
+            <button onclick="javascript:adduser()" style="margin-bottom:20px;margin-left:30px;" type="button"
+                    class="btn btn-primary">提交
+            </button>
+        </div>
+
+        <div class="col-md-6">
+            <div><img src=""/></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    function adduser() {
+        var username = $('#username').val();
+        var password = $('#password').val();
+        var email = $('#email').val();
+        if (username == '' || password == '' || email == '') {
+            alert('用户名、密码、邮箱为必填字段');
+            return none;
+        }
+        if (!ismail(email)) {
+            alert('邮箱格式不正确');
+            return none;
+        }
+        var sendurl = "{{ url_for('home.changeuser') }}";
+        var senddata = new FormData(document.getElementById("msgform"));
+        $.ajax({
+            url: sendurl,
+            data: senddata,
+            type: 'POST',
+            dataType: "json",
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (message) {
+                alert(message['msg']);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+
+    function ismail(mail) {
+        var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+        if (reg.test(mail)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    $(document).ready(function () {
+        $("#li-2-1").addClass("active");
+        $("#li-2 a:first").attr("aria-expanded", "true");
+        $("#users").addClass("show");
+    });
+</script>
+{% endblock %}

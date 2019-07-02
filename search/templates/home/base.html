@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>个人博客</title>
+    <link rel="shortcut icon" href="{{ url_for('static',filename='admin/img/favicon.ico') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static',filename='home/css/index.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static',filename='home/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='home/js/nav.js') }}"></script>
+    <script src="{{ url_for('static',filename='home/js/scrollReveal.js') }}"></script>
+    <!--[if lt IE 9]>
+    <script src="{{ url_for('static',filename='home/js/modernizr.js') }}"></script>
+    <![endif]-->
+
+    <style>
+        #all article, figure {
+            display: block;
+        }
+
+        #all *, html, body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #all body, p, ul, li, span, i, strong, input, textarea {
+            font-size: 14px;
+            font-family: "微软雅黑";
+            font-style: normal;
+            padding: 0;
+            margin: 0;
+        }
+
+        #all a {
+            text-decoration: none;
+            color: #000;
+        }
+
+        #all ul, li {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #all article {
+            float: left;
+            width: 300px;
+            height: 170px;
+            margin-top: 20px;
+        }
+
+        #yhm {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 10px;
+            margin-left: 19px;
+            margin-top: 28px;
+            color: dimgrey;
+        }
+
+        #name {
+            width: 205px;
+            height: 35px;
+            float: left;
+            margin-top: 20px;
+            margin-right: 10px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #mima {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 9.5px;
+            margin-left: 19px;
+            margin-top: 38px;
+            color: dimgrey;
+        }
+
+        #password {
+            width: 205px;
+            height: 35px;
+            float: left;
+            margin-top: 29px;
+            margin-right: 10px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #zc {
+            width: 215px;
+            height: 40px;
+            background: #4490f7;
+            color: white;
+            font-family: "微软雅黑";
+            font-size: 16px;
+            border: 0px;
+            margin-left: 60px;
+            margin-top: 0px;
+        }
+
+        #all {
+            background: #f0f0f0;
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            margin-left: -150px;
+            margin-top: -150px;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+
+    {% block css %}
+    {% endblock %}
+</head>
+<body>
+<header class="header-navigation" id="header">
+    <nav>
+        <div class="logo"><a href="{{ url_for('home.index') }}">个人博客</a></div>
+        <h2 id="mnavh"><span class="navicon"></span></h2>
+        <ul id="starlist">
+            <li><a href="{{ url_for('home.index') }}">网站首页</a></li>
+            <li><a href="/newtype">文章类别</a></li>
+            {% if session['uid'] %}
+            <li><a href="/usermsg/{{ session.uid }}">个人信息</a>
+                <ul class="sub">
+                    <li><a href="/me">个人资料</a></li>
+                    <li><a href="/changekw">修改密码</a></li>
+                </ul>
+            </li>
+
+            <li><a href="/share">文章分享</a>
+            <li><a href="javascript:void(0);" onclick="logout();">退出登录</a></li>
+            {% else %}
+            <li><a href="javascript:void(0);">账号</a>
+                <ul class="sub">
+                    <li><a href="{{ url_for('home.register') }}">注册</a></li>
+                    <li><a href="{{ url_for('home.login') }}">登录</a></li>
+                </ul>
+            </li>
+            {% endif %}
+            <!--            <li><a href="gbook.html">留言</a></li>-->
+        </ul>
+        <div class="searchbox">
+            <div id="search_bar" class="search_bar">
+                <form id="searchform" action="{{ url_for('home.index') }}" method="get" name="searchform">
+
+                    <input class="input" placeholder="按Enter搜索" type="text" name="kw" id="keyboard">
+                    <button hidden="hidden">搜索</button>
+                    <p class="search_ico"><span></span></p>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>
+<article>
+    {% block content %}
+    {% endblock %}
+    <div class="sidebar">
+
+        <div style="box-sizing:initial;" class="cloud">
+            <h2 class="hometitle">文章类别</h2>
+            <ul class="typelist" id="typelist">
+            </ul>
+        </div>
+
+        <div class="zhuanti">
+            <h2 class="hometitle">最新发布</h2>
+            <ul id="newnews">
+            </ul>
+        </div>
+
+        <div class="tuijian">
+            <h2 class="hometitle">点击量排行</h2>
+            <ul id="clickfirst" class="tjpic">
+            </ul>
+            <ul id="clickrank" class="sidenews">
+            </ul>
+        </div>
+    </div>
+</article>
+
+<div id="all" style="z-index: 19981010; display: none; overflow: hidden;">
+    <div style="float:right;margin-right:10px;">
+        <a onclick="loginclose();" href="javascript:void(0);" style="color:#ff00ff;font-size:20px;">x</a></div>
+    <article>
+        <p id="yhm">用户</p>
+        <input type="text" placeholder="请输入用户名或邮箱" id="name"/>
+        <p id="mima">密码 </p>
+        <input type="password" placeholder="请输入登录密码" id="password"/>
+    </article>
+    <input type="button" onclick="javascript:login()" value="登录" id="zc"/>
+    <a href="{{ url_for('home.forget') }}" style="margin-left:60px;">忘记密码</a>
+    <a href="{{ url_for('home.register') }}" style="margin-left:90px;">点击注册</a>
+</div>
+<div id="blind"
+     style="display: none;z-index: 19981001;position: fixed;top: 0px;left: 0px;width: 100%;height: 100%;pointer-events: auto;background-color: rgb(0, 0, 0);opacity: 0.6;"></div>
+
+<footer>
+    <p>Design by <a>个人博客</a><a>123456789</a></p>
+</footer>
+<a href="#" class="cd-top">Top</a>
+</body>
+{% block js %}
+{% endblock %}
+<script type="text/javascript">
+    newnews();
+    newclick();
+    types();
+
+    function newnews() {
+        let newurl = "{{ url_for('home.newnews') }}";
+        $.ajax({
+            type: 'POST',
+            url: newurl,
+            async: false,
+            contentType: false,
+            data: '3',
+            dataType: 'json',
+            success: function (message) {
+                let news = "";
+                for (let i = 0; i < message.length; i++) {
+                    if (message[i]['cover'] != null) {
+                        news = news + '<li><i><img src="/static/upload/' + message[i]['cover'] + '"></i>';
+                    } else {
+                        news = news + '<li><i><img src="/static/upload/default.jpg"></i>';
+                    }
+                    news = news + '<p>' + message[i]['title'] + '<span><a href="/onenew/' + message[i]['id'] + '">阅读</a></span></p></li>';
+                }
+                $('#newnews').html(news);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据传输失败');
+            }
+        });
+    }
+
+    function newclick() {
+        let clickurl = "{{ url_for('home.click') }}";
+        $.ajax({
+            type: 'POST',
+            url: clickurl,
+            async: false,
+            contentType: false,
+            data: '5',
+            dataType: 'json',
+            success: function (message) {
+                let first = '';
+                let other = '';
+                if (message[0]['cover']) {
+                    first = first + '<i><img src="/static/upload/' + message[0]['cover'] + '"></i>'
+                }
+                first = first + '<p><a href="/onenew/' + message[0]['id'] + '">' + message[0]['title'] + '</a></p>';
+                $('#clickfirst').html(first);
+                for (let i = 1; i < message.length; i++) {
+                    if (message[i]['cover']) {
+                        other = other + '<li><i><img src="/static/upload/' + message[i]['cover'] + '"></i><p><a href="/onenew/' + message[i]['id'] +
+                            '">' + message[i]['title'] + '</a></p><span>' + message[i]['time'] + '</span></li>';
+                    } else {
+                        other = other + '<li><p><a href="/onenew/' + message[i]['id'] +
+                            '">' + message[i]['title'] + '</a></p><span>' + message[i]['time'] + '</span></li>';
+                    }
+                }
+                $('#clickrank').html(other);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据传输失败');
+            }
+        });
+    }
+
+    function types() {
+        let typeurl = "{{ url_for('home.types') }}";
+        $.ajax({
+            type: 'POST',
+            url: typeurl,
+            async: false,
+            contentType: false,
+            data: 'all',
+            dataType: 'json',
+            success: function (message) {
+                let alltype = '';
+                for (let i = 0; i < message.length; i++) {
+                    alltype = alltype + '<a href="/newtype/' + message[i]['id'] + '">' + message[i]['name'] + '</a>';
+                }
+                $('.typelist').html(alltype);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据传输失败');
+            }
+        });
+    }
+
+    function showlogin() {
+        let alldiv = document.getElementById('all');
+        let blinddiv = document.getElementById('blind');
+        alldiv.style.display = 'block';
+        blinddiv.style.display = 'block';
+    }
+
+    function loginclose() {
+        let alldiv = document.getElementById('all');
+        let blinddiv = document.getElementById('blind');
+        alldiv.style.display = 'none';
+        blinddiv.style.display = 'none';
+    }
+
+    function login() {
+        var name = document.getElementById('name').value;
+        var password = document.getElementById('password').value;
+        if (name == '' || password == '') {
+            alert('账号或密码不能为空');
+            return none;
+        }
+        var login = "{{ url_for('home.login') }}";
+        var ajaxdata = JSON.stringify({
+            'name': name,
+            'password': password,
+        });
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', login, true);
+        xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+        xhr.send(ajaxdata);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+                if (pagedata.code == true) {
+                    alert('欢迎' + pagedata.name);
+                    // let index = "{{ url_for('home.index') }}";
+                    location.reload();
+                    // top.location.href = index;
+                } else {
+                    alert('账号或密码输入错误');
+                }
+            }
+        };
+
+    }
+
+    function logout() {
+        let outurl = "{{ url_for('home.logout') }}";
+        if (confirm('确定退出？')) {
+            $.ajax({
+                type: 'POST',
+                url: outurl,
+                async: false,
+                contentType: false,
+                data: 'out',
+                dataType: 'json',
+                success: function (message) {
+                    if (message['code'] == true) {
+                        location.reload();
+                    } else {
+                        alert('未知错误');
+                    }
+
+                },
+                error: function (XMLHttpRequest, errorThrown) {
+                    alert('数据传输失败');
+                }
+            });
+        }
+
+    }
+</script>
+
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon" />
+    <meta charset="UTF-8">
+    <title>{{ pimage.title }}</title>
+</head>
+<body>
+<h2>标题：{{ pimage.title }}</h2>
+<h2>作者id：{{ pimage.userid }}</h2>
+{% if imglist==None %}
+正在下载，等几分钟就行了
+{% else %}
+{% for i in imglist %}
+<img src="{{ url_for('static',filename='pimgs/'+i) }}">
+{% endfor %}
+{% endif %}
+</body>
+</html>

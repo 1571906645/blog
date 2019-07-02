@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="{{ url_for('static',filename='js2/jquery-3.3.1.min.js') }}"></script>
+    <title>忘记密码</title>
+    <style>
+        article, figure {
+            display: block;
+        }
+
+        *, html, body, div {
+            padding: 0;
+            margin: 0;
+        }
+
+        p, ul, li, span, i, strong, input, textarea {
+            font-size: 14px;
+            font-family: "微软雅黑";
+            font-style: normal;
+            padding: 0;
+            margin: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: normal;
+            font-size: 14px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #000;
+        }
+
+        ul, li {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        article {
+            float: left;
+            width: 400px;
+            height: 270px;
+            margin-top: 20px;
+        }
+
+        #yhm {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 10px;
+            margin-left: 19px;
+            margin-top: 28px;
+            color: dimgrey;
+        }
+
+        #sjh {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 10px;
+            margin-left: 19px;
+            margin-top: 38px;
+            color: dimgrey;
+        }
+
+        #mail {
+            width: 305px;
+            height: 35px;
+            float: left;
+            margin-top: 29px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #mima {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 5px;
+            margin-left: 10px;
+            margin-top: 38px;
+            color: dimgrey;
+        }
+
+        #pw1, #pw2 {
+            width: 305px;
+            height: 35px;
+            float: left;
+            margin-top: 29px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #yzm {
+            font-family: "微软雅黑";
+            font-size: 14px;
+            float: left;
+            margin-right: 10px;
+            margin-left: 19px;
+            margin-top: 38px;
+            color: dimgrey;
+        }
+
+        #keycode {
+            width: 170px;
+            height: 35px;
+            float: left;
+            margin-top: 29px;
+            border: #D3D3D3 solid 1px;
+            padding-left: 10px;
+        }
+
+        #btn {
+            width: 125px;
+            height: 35px;
+            margin-left: 10px;
+            /*float: left;*/
+            margin-top: 29px;
+            border: #D3D3D3 solid 1px;
+            color: grey;
+            font-family: "微软雅黑";
+            font-size: 12px;
+            background: whitesmoke;
+        }
+
+        #forget {
+            width: 315px;
+            height: 40px;
+            background: #4490f7;
+            color: white;
+            font-family: "微软雅黑";
+            font-size: 16px;
+            border: 0px;
+            margin-left: 70px;
+            margin-top: 10px;
+        }
+
+        #all {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            margin-left: -200px;
+            margin-top: -200px;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+
+</head>
+<body>
+<div id="all">
+    <article>
+        <p id="yhm">邮箱号</p>
+        <input type="text" placeholder="注册时的邮箱" id="mail"/>
+        <p id="sjh">新密码</p>
+        <input type="password" placeholder="输入新的密码" id="pw1"/>
+        <p id="mima">再次输入</p>
+        <input type="password" placeholder="再次确认密码" id="pw2"/>
+        <p id="yzm">验证码</p>
+        <input type="text" placeholder="请输入验证码" id="keycode"/>
+        <button id="btn" onclick="javascript:sendmail()">获取验证码</button>
+        <script></script>
+    </article>
+    <input type="button" onclick="javascript:forget()" value="确认修改" id="forget"/>
+    <a href="{{ url_for('home.register') }}" style="margin-left:70px;">点击注册</a>
+    <a href="{{ url_for('home.login') }}" style="margin-left:180px;">点击登录</a>
+</div>
+</body>
+<script type="text/javascript">
+    function forget() {
+        var pw1 = document.getElementById('pw1').value;
+        var pw2 = document.getElementById('pw2').value;
+        var keycode = document.getElementById('keycode').value;
+        var email = document.getElementById('mail').value;
+        if (pw1 == '' || pw2 == '' || keycode == '' || email == '') {
+            alert('不能有空值');
+            return none
+        }
+        if (pw1 != pw2) {
+            alert('两次密码输入不相等');
+            return none
+        }
+        var forget = "{{ url_for('home.forget') }}";
+        var ajaxdata = JSON.stringify({
+            'pw1': pw1,
+            'keycode': keycode,
+            'email': email
+        });
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', forget, true);
+        xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+        xhr.send(ajaxdata);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+                if (pagedata.code == true) {
+                    alert(pagedata.msg);
+                    var login = "{{ url_for('home.login') }}";
+                    top.location.href = login;
+                } else {
+                    alert(pagedata.msg);
+                }
+            }
+        };
+
+    }
+
+    function sendmail() {
+        var mail = document.getElementById('mail').value;
+        // alert(mail);
+        var result = ismail(mail);
+        var url = "{{ url_for('home.sendmail') }}";
+        if (result) {
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+            var data1 = JSON.stringify({
+                'mail': mail,
+                'type': 'forget'
+            });
+            xhr.send(data1);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var pagedata = (new Function('return(' + xhr.responseText + ')'))();
+                    if (pagedata.code == true) {
+                        settime($("#btn"));
+                    }
+                        alert(pagedata.msg);
+                }
+            };
+        } else {
+            alert('邮箱格式不正确');
+        }
+    }
+
+    function ismail(mail) {
+        var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+        if (reg.test(mail)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    var countnum = 6;
+
+    function settime(obj) {
+        if (countnum == 0) {
+            obj.prop('disabled', false);
+            obj.text('获取验证码');
+            countnum = 6;
+            return true;
+        } else {
+            obj.prop('disabled', true);
+            obj.text("(" + countnum + "s)后重新发送");
+            countnum--;
+        }
+        setTimeout(function () {
+            settime(obj)
+        }, 1000);
+    }
+</script>
+</html>

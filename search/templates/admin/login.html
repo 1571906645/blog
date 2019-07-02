@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+
+    <title></title>
+    <link rel="shortcut icon" href="{{ url_for('static',filename='admin/img/favicon.ico') }}">
+
+    <!-- global stylesheets -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/font-awesome-4.7.0/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/css/font-icon-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/css/style.default.css') }}" id="theme-stylesheet">
+
+    <!-- Core stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/css/pages/login.css') }}">
+</head>
+
+<body>
+
+<!--====================================================
+                        PAGE CONTENT
+======================================================-->
+<section class="hero-area">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 ">
+                <div class="contact-h-cont">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Enter Username">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Password</label>
+                        <input class="form-control" type="password" placeholder="Enter password" value=""
+                               id="example-password-input">
+                    </div>
+                    <button onclick="javascript:login()" class="btn btn-general btn-blue">Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--Global Javascript -->
+<script src="{{ url_for('static',filename='admin/js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/js/tether.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/js/bootstrap.min.js') }}"></script>
+</body>
+<script type="text/javascript">
+    function login() {
+        var username = $('#username').val();
+        var password = $('#example-password-input').val();
+        if (username == '' || password == '') {
+            alert('账号或密码不能为空');
+            return none;
+        }
+        var loginurl = "{{ url_for('admin.login') }}";
+        var logindata = JSON.stringify({
+            'username': username,
+            'password': password
+        });
+        $.ajax({
+            type: 'POST',
+            url: loginurl,
+            async: true,
+            contentType: "application/json:charset=utf-8",
+            data: logindata,
+            dataType: 'json',
+            success: function (message) {
+                if (message['code'] == true) {
+                    alert(message['msg']);
+                    var index = "{{ url_for('admin.index') }}";
+                    top.location.href = index;
+                    return none
+                }
+                alert(message['msg']);
+            },
+            error: function (XMLHttpRequest, errorThrown) {
+                alert('数据提交失败');
+            }
+        });
+    }
+</script>
+</html>

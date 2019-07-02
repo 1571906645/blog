@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="card form" id="form2">
+    <div class="card-header">
+        <h3>添加文章类型</h3>
+    </div>
+    <br>
+    <div style="margin-left:20px;" class="row">
+        <div class="col-md-6">
+            <div class="form-group row">
+                <label style="width: 100px;" class=" col-form-label">编辑类型名称</label>
+                <div class="col-9">
+                    <input id="type" class="form-control" type="text">
+                </div>
+            </div>
+            <button onclick="javascript:addtype()" style="margin-bottom:20px;margin-left:30px;" type="button"
+                    class="btn btn-primary">保存修改
+            </button>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    function addtype() {
+        var tyname = $('#type').val();
+        var addurl = "{{ url_for('admin.addtype') }}";
+        if (tyname == '') {
+            alert('输入不能为空');
+            return false
+        } else {
+            $.ajax({
+                type: 'POST',
+                url: addurl,
+                async: true,
+                contentType: false,
+                data: tyname,
+                dataType: 'json',
+                success: function (message) {
+                    if (message['code'] == true) {
+                        alert(message['msg']);
+                        return none
+                    } else {
+                        alert(message['msg']);
+                    }
+                },
+                error: function (XMLHttpRequest, errorThrown) {
+                    alert('数据提交失败');
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        $("#li-4-1").addClass("active");
+        $("#li-4 a:first").attr("aria-expanded", "true");
+        $("#types").addClass("show");
+    });
+</script>
+{% endblock %}
