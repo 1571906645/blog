@@ -16,7 +16,7 @@ Flask_SQLAlchemy == 2.3.2
 SQLAlchemy == 1.2.12
 
 # search\home\uploader.py: 10
-Werkzeug == 0.14.1
+Werkzeug == 0.15.3
 
 # search\home\views.py: 8
 qrcode == 6.0
